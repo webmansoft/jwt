@@ -38,7 +38,7 @@ class JwtToken
      * @param string $field
      * @return array|int|string
      */
-    public static function getExtendVal(string $field)
+    public static function getExtendVal(string $field): array|int|string
     {
         return self::getTokenExtend()[$field] ?? '';
     }
@@ -66,7 +66,7 @@ class JwtToken
         $config = self::getConfig();
         $config['access_exp'] = $extend['access_exp'] ?? $config['access_exp'];
         $payload = self::generatePayload($config, $extend);
-        $secret_key = self::getPrivateKey($config);
+        $secret_key = self::getPrivateKey($config['algorithm']);
         $token = [
             'token_type' => 'Bearer',
             'expires_in' => $config['access_exp'],
@@ -91,13 +91,13 @@ class JwtToken
         $token = $token ?? self::getTokenFromHeaders();
         try {
             return self::verifyToken($token);
-        } catch (SignatureInvalidException $signatureInvalidException) {
+        } catch (SignatureInvalidException) {
             throw new JwtTokenException('身份验证令牌无效', 401011);
-        } catch (BeforeValidException $beforeValidException) {
+        } catch (BeforeValidException) {
             throw new JwtTokenException('身份验证令牌尚未生效', 401012);
-        } catch (ExpiredException $expiredException) {
+        } catch (ExpiredException) {
             throw new JwtTokenExpiredException('身份验证会话已过期，请重新登录！', 401013);
-        } catch (UnexpectedValueException $unexpectedValueException) {
+        } catch (UnexpectedValueException) {
             throw new JwtTokenException('获取的扩展字段不存在', 401014);
         } catch (JwtCacheTokenException|Exception $exception) {
             throw new JwtTokenException($exception->getMessage(), 401015);
