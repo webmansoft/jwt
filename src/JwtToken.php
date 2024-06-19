@@ -4,12 +4,16 @@ declare(strict_types=1);
 namespace Webmansoft\Jwt;
 
 use Exception;
+use UnexpectedValueException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\SignatureInvalidException;
 use Webmansoft\Jwt\Exception\JwtTokenException;
+use Webmansoft\Jwt\Exception\JwtConfigException;
+use Webmansoft\Jwt\Exception\JwtCacheTokenException;
+use Webmansoft\Jwt\Exception\JwtTokenExpiredException;
 
 class JwtToken
 {
@@ -73,7 +77,7 @@ class JwtToken
             $client = $extend['client'] ?? self::TOKEN_CLIENT_WEB;
             RedisHandler::generateToken($config['cache_token_prefix'], (string)$client, (string)$extend['id'], $config['access_exp'], $token['access_token']);
         }
-        
+
         return $token;
     }
 
@@ -220,41 +224,24 @@ class JwtToken
     private static function getPublicKey(string $algorithm): string
     {
         $config = self::getConfig();
-        switch ($algorithm) {
-            case 'HS256':
-                $key = $config['access_secret_key'];
-                break;
-            case 'RS512':
-            case 'RS256':
-                $key = $config['access_public_key'];
-                break;
-            default:
-                $key = $config['access_secret_key'];
-        }
-
-        return $key;
+        return match ($algorithm) {
+            'RS512', 'RS256' => $config['access_public_key'],
+            default => $config['access_secret_key'],
+        };
     }
 
     /**
      * 根据签名算法获取【私钥】签名值
-     * @param array $config 配置文件
+     * @param string $algorithm 算法
      * @return string
      */
-    private static function getPrivateKey(array $config): string
+    private static function getPrivateKey(string $algorithm): string
     {
-        switch ($config['algorithm']) {
-            case 'HS256':
-                $key = $config['access_secret_key'];
-                break;
-            case 'RS512':
-            case 'RS256':
-                $key = $config['access_private_key'];
-                break;
-            default:
-                $key = $config['access_secret_key'];
-        }
-
-        return $key;
+        $config = self::getConfig();
+        return match ($algorithm) {
+            'RS512', 'RS256' => $config['access_private_key'],
+            default => $config['access_secret_key'],
+        };
     }
 
     /**
