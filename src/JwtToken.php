@@ -131,7 +131,6 @@ class JwtToken
     private static function getTokenExtend(bool $throw = true): array
     {
         $data = self::verify(null, $throw);
-        var_dump($data);
         return $data['extend'] ?? [];
     }
 
