@@ -4,7 +4,7 @@ return [
     'enable' => true,
     'jwt' => [
         /** 算法类型 HS256、HS384、HS512、RS256、RS384、RS512、ES256、ES384、Ed25519 */
-        'algorithms' => 'HS256',
+        'algorithm' => 'HS256',
 
         /** access令牌秘钥 */
         'access_secret_key' => '20240619',
