@@ -1,0 +1,17 @@
+{
+  "name": "webmansoft/jwt",
+  "type": "library",
+  "license": "MIT",
+  "description": "Webman plugin webmansoft/jwt",
+  "require": {
+    "php": ">=8.0",
+    "workerman/webman-framework": "^1.5",
+    "firebase/php-jwt": "^6.8",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Webmansoft\\Jwt\\": "src"
+    }
+  }
+}
