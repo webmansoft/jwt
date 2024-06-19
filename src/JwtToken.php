@@ -25,31 +25,33 @@ class JwtToken
 
     /**
      * 获取当前登录ID
+     * @param bool $throw 是否抛出错误
      * @return int
-     * @throws JwtTokenException
      */
-    public static function getUserId(): int
+    public static function getUserId(bool $throw = true): int
     {
-        return self::getExtendVal('id') ?? 0;
+        return self::getExtendVal('id', $throw) ?? 0;
     }
 
     /**
      * 获取指定令牌扩展内容字段的值
      * @param string $field
+     * @param bool $throw 是否抛出错误
      * @return array|int|string
      */
-    public static function getExtendVal(string $field): array|int|string
+    public static function getExtendVal(string $field, bool $throw = true): array|int|string
     {
-        return self::getTokenExtend()[$field] ?? '';
+        return self::getTokenExtend($throw)[$field] ?? '';
     }
 
     /**
      * 获取指定令牌扩展内容
+     * @param bool $throw 是否抛出错误
      * @return array
      */
-    public static function getExtend(): array
+    public static function getExtend(bool $throw = true): array
     {
-        return self::getTokenExtend();
+        return self::getTokenExtend($throw);
     }
 
     /**
@@ -84,33 +86,49 @@ class JwtToken
     /**
      * 验证令牌
      * @param string|null $token
-     * @return array
+     * @param bool $throw 是否抛出错误
+     * @return array|bool
      */
-    public static function verify(string|null $token = null): array
+    public static function verify(string|null $token = null, bool $throw = true): array|bool
     {
-        $token = $token ?? self::getTokenFromHeaders();
+        $token = $token ?? self::getTokenFromHeaders($throw);
         try {
-            return self::verifyToken($token);
+            if (is_string($token)) {
+                return self::verifyToken($token);
+            }
         } catch (SignatureInvalidException) {
-            throw new JwtTokenException('身份验证令牌无效', 401011);
+            if ($throw) {
+                throw new JwtTokenException('身份验证令牌无效', 401011);
+            }
         } catch (BeforeValidException) {
-            throw new JwtTokenException('身份验证令牌尚未生效', 401012);
+            if ($throw) {
+                throw new JwtTokenException('身份验证令牌尚未生效', 401012);
+            }
         } catch (ExpiredException) {
-            throw new JwtTokenExpiredException('身份验证会话已过期，请重新登录！', 401013);
+            if ($throw) {
+                throw new JwtTokenExpiredException('身份验证会话已过期，请重新登录', 401013);
+            }
         } catch (UnexpectedValueException) {
-            throw new JwtTokenException('获取的扩展字段不存在', 401014);
+            if ($throw) {
+                throw new JwtTokenException('获取的扩展字段不存在', 401014);
+            }
         } catch (JwtCacheTokenException|Exception $exception) {
-            throw new JwtTokenException($exception->getMessage(), 401015);
+            if ($throw) {
+                throw new JwtTokenException($exception->getMessage(), 401015);
+            }
         }
+
+        return false;
     }
 
     /**
      * 获取扩展字段
+     * @param bool $throw 是否抛出错误
      * @return array
      */
-    private static function getTokenExtend(): array
+    private static function getTokenExtend(bool $throw = true): array
     {
-        return (array)self::verify()['extend'];
+        return (array)self::verify(null, $throw)['extend'];
     }
 
     /**
@@ -124,43 +142,68 @@ class JwtToken
 
     /**
      * 获取Header头部authorization令牌
-     * @return string
+     * @param bool $throw 是否抛出错误
+     * @return string|bool
      */
-    private static function getTokenFromHeaders(): string
+    private static function getTokenFromHeaders(bool $throw = true): string|bool
     {
         $authorization = request()->header('authorization');
         if (!$authorization || 'undefined' == $authorization) {
             $config = self::getConfig();
             if (!isset($config['is_support_get_token']) || false === $config['is_support_get_token']) {
-                throw new JwtTokenException('请求未携带authorization信息', 401000);
+                if ($throw) {
+                    throw new JwtTokenException('请求未携带authorization信息', 401000);
+                } else {
+                    return false;
+                }
             }
 
             $authorization = request()->get($config['is_support_get_token_key']);
             if (empty($authorization)) {
-                throw new JwtTokenException('请求未携带authorization信息', 401000);
+                if ($throw) {
+                    throw new JwtTokenException('请求未携带authorization信息', 401000);
+                } else {
+                    return false;
+                }
             }
 
             $authorization = 'Bearer ' . $authorization;
         }
 
         if (2 != substr_count($authorization, '.')) {
-            throw new JwtTokenException('非法的authorization信息', 401001);
+            if ($throw) {
+                throw new JwtTokenException('非法的authorization信息', 401001);
+            } else {
+                return false;
+            }
         }
 
         if (2 != count(explode(' ', $authorization))) {
-            throw new JwtTokenException('Bearer验证中的凭证格式有误，中间必须只有一个空格', 401000);
+            if ($throw) {
+                throw new JwtTokenException('Bearer验证中的凭证格式有误，中间必须只有一个空格', 401000);
+            } else {
+                return false;
+            }
         }
 
         [$type, $token] = explode(' ', $authorization);
         if ('Bearer' !== $type) {
-            throw new JwtTokenException('接口认证方式需为Bearer', 401000);
+            if ($throw) {
+                throw new JwtTokenException('接口认证方式需为Bearer', 401000);
+            } else {
+                return false;
+            }
         }
 
         if (!$token || 'undefined' === $token) {
-            throw new JwtTokenException('尝试获取的Authorization信息不存在', 401000);
+            if ($throw) {
+                throw new JwtTokenException('尝试获取的Authorization信息不存在', 401000);
+            } else {
+                return false;
+            }
         }
 
-        return $token;
+        return $throw ? $token : true;
     }
 
     /**
