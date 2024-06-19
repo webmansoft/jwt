@@ -139,7 +139,7 @@ class JwtToken
             $authorization = 'Bearer ' . $authorization;
         }
 
-        if (self::REFRESH_TOKEN != substr_count($authorization, '.')) {
+        if (2 != substr_count($authorization, '.')) {
             throw new JwtTokenException('非法的authorization信息', 401001);
         }
 
