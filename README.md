@@ -72,7 +72,7 @@ var_dump(json_encode($token));
 
 1、获取当前`id`
 ```php
-$id = Webmansoft\Jwt\JwtToken::getCurrentId();
+$id = Webmansoft\Jwt\JwtToken::getUserId();
 ```
 
 2、获取所有字段
@@ -117,17 +117,17 @@ $res = Webmansoft\Jwt\JwtToken::clear();
 $user = [
     'id'  => 2022,
     'name'  => 'Tinywan',
-    'client' => JwtToken::TOKEN_CLIENT_WEB
+    'client' => Webmansoft\Jwt\JwtToken::TOKEN_CLIENT_WEB
 ];
-$token = JwtToken::generateToken($user);
+$token = Webmansoft\Jwt\JwtToken::generateToken($user);
 
 // 生成移动端令牌
 $user = [
     'id'  => 2022,
     'name'  => 'Tinywan',
-    'client' => JwtToken::TOKEN_CLIENT_MOBILE
+    'client' => Webmansoft\Jwt\JwtToken::TOKEN_CLIENT_MOBILE
 ];
-$token = JwtToken::generateToken($user);
+$token = Webmansoft\Jwt\JwtToken::generateToken($user);
 ```
 默认是`WEB`端
 
