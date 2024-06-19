@@ -1,0 +1,19 @@
+.env
+.git
+.svn
+.idea
+.fleet
+.vscode
+.DS_Store
+/vendor
+/runtime
+/safefile
+/nbproject
+/composer.lock
+!composer.json
+
+### 屏蔽环境文件
+/public/upload
+/public/user
+/public/storage
+/public/.user.ini
