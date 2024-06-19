@@ -148,7 +148,7 @@ class JwtToken
         }
 
         if (2 != count(explode(' ', $authorization))) {
-            throw new JwtTokenException('Bearer验证中的凭证格式有误，中间必须有一个空格', 401000);
+            throw new JwtTokenException('Bearer验证中的凭证格式有误，中间必须只有一个空格', 401000);
         }
 
         [$type, $token] = explode(' ', $authorization);
