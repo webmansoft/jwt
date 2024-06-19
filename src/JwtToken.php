@@ -30,7 +30,7 @@ class JwtToken
      */
     public static function getUserId(bool $throw = true): int
     {
-        return self::getExtendVal('id', $throw) ?? 0;
+        return intval(self::getExtendVal('id', $throw));
     }
 
     /**
@@ -87,15 +87,17 @@ class JwtToken
      * 验证令牌
      * @param string|null $token
      * @param bool $throw 是否抛出错误
-     * @return array|bool
+     * @return array
      */
-    public static function verify(string|null $token = null, bool $throw = true): array|bool
+    public static function verify(string|null $token = null, bool $throw = true): array
     {
         $token = $token ?? self::getTokenFromHeaders($throw);
+        if ($token === false) {
+            return [];
+        }
+
         try {
-            if (is_string($token)) {
-                return self::verifyToken($token);
-            }
+            return self::verifyToken($token);
         } catch (SignatureInvalidException) {
             if ($throw) {
                 throw new JwtTokenException('身份验证令牌无效', 401011);
@@ -118,7 +120,7 @@ class JwtToken
             }
         }
 
-        return false;
+        return [];
     }
 
     /**
@@ -128,7 +130,9 @@ class JwtToken
      */
     private static function getTokenExtend(bool $throw = true): array
     {
-        return (array)self::verify(null, $throw)['extend'];
+        $data = self::verify(null, $throw);
+        var_dump($data);
+        return $data['extend'] ?? [];
     }
 
     /**
@@ -203,7 +207,7 @@ class JwtToken
             }
         }
 
-        return $throw ? $token : true;
+        return $token;
     }
 
     /**
